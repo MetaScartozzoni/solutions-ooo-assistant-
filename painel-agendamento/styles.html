@@ -1,0 +1,116 @@
+<style>
+  :root {
+    --cor-primaria: #0a2463;
+    --cor-dourado: #d4af37;
+    --cor-cinza: #455261;
+    --cor-fundo-claro: #e4ecf8;
+    --cor-branco: #ffffff;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--cor-fundo-claro);
+    color: var(--cor-primaria);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--cor-branco);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  h1, h2, h3 {
+    color: var(--cor-primaria);
+    margin-bottom: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 15px;
+  }
+
+  button {
+    background-color: var(--cor-dourado);
+    color: var(--cor-primaria);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #b8962f;
+    transform: scale(1.05);
+  }
+
+  .table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  th, td {
+    padding: 12px;
+    border: 1px solid #ccc;
+    text-align: left;
+  }
+
+  th {
+    background-color: var(--cor-cinza);
+    color: var(--cor-branco);
+  }
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  select.status-select {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .filters {
+    margin-bottom: 20px;
+    background: #f2f2f2;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 14px;
+    color: #888;
+  }
+</style>

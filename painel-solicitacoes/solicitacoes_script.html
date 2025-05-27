@@ -1,0 +1,91 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initSolicitacoes();
+});
+
+function initSolicitacoes() {
+  loadSolicitacoes();
+  document.getElementById('newRequestForm').addEventListener('submit', handleNovaSolicitacao);
+  document.getElementById('statusFilter').addEventListener('change', loadSolicitacoes);
+}
+
+function loadSolicitacoes() {
+  google.script.run
+    .withSuccessHandler(displaySolicitacoes)
+    .withFailureHandler(showError)
+    .getRequests();
+}
+
+function displaySolicitacoes(data) {
+  const tbody = document.querySelector('#requestsTable tbody');
+  tbody.innerHTML = '';
+  const filtro = document.getElementById('statusFilter').value;
+  const filtradas = filtro === 'Todos' ? data : data.filter(r => r.Status === filtro);
+
+  filtradas.forEach(row => {
+    const tr = tbody.insertRow();
+    const campos = ['ID', 'Data', 'Cliente', 'Assunto', 'Status', 'Responsável', 'Última Atualização'];
+    campos.forEach(c => tr.insertCell().textContent = row[c] || '');
+
+    const acoes = tr.insertCell();
+    const select = document.createElement('select');
+    ['Pendente', 'Em Andamento', 'Concluído'].forEach(status => {
+      const opt = document.createElement('option');
+      opt.value = status;
+      opt.textContent = status;
+      if (row.Status === status) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.onchange = function () {
+      const novoStatus = this.value;
+      const resp = prompt('Nome do responsável:');
+      if (resp) {
+        google.script.run
+          .withSuccessHandler(loadSolicitacoes)
+          .withFailureHandler(showError)
+          .updateRequestStatus(parseInt(row.ID), novoStatus, resp);
+      } else {
+        this.value = row.Status;
+      }
+    };
+    acoes.appendChild(select);
+  });
+}
+
+function handleNovaSolicitacao(e) {
+  e.preventDefault();
+  const btn = e.submitter;
+  btn.disabled = true;
+
+  const dados = {
+    Cliente: document.getElementById('cliente')?.value || '',
+    Assunto: document.getElementById('assunto')?.value || '',
+    Descricao: document.getElementById('descricao')?.value || '',
+    Responsavel: document.getElementById('responsavel')?.value || '',
+    Status: 'Pendente'
+  };
+
+  if (!dados.Cliente || dados.Cliente.trim().length < 2) {
+    alert('Nome do cliente é obrigatório.');
+    btn.disabled = false;
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(() => {
+      document.getElementById('newRequestForm').reset();
+      loadSolicitacoes();
+      btn.disabled = false;
+    })
+    .withFailureHandler(err => {
+      showError(err);
+      btn.disabled = false;
+    })
+    .addRequest(dados);
+}
+
+function showError(error) {
+  alert('Erro: ' + error.message);
+}
+</script>
+

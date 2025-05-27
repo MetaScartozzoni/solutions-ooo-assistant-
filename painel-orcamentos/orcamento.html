@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Orçamentos Cirúrgicos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e4ecf8;
+      color: #0a2463;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      color: #0a2463;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #d4af37;
+      color: #0a2463;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 5px 5px 15px 0;
+    }
+    button:hover {
+      background-color: #b9982f;
+    }
+    .grid-flex {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f8f9fa;
+    }
+    tr:nth-child(even) {
+      background-color: #f1f1f1;
+    }
+    .filters {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Painel de Orçamentos Cirúrgicos</h1>
+
+  <h2>Adicionar/Editar Orçamento</h2>
+  <form id="budgetForm">
+    <input type="hidden" id="budgetId" value="">
+    <div class="grid-flex">
+      <div class="form-group">
+        <label for="clienteOrcamento">Nome do Paciente:</label>
+        <input type="text" id="clienteOrcamento" required>
+      </div>
+      <div class="form-group">
+        <label for="telefoneOrcamento">WhatsApp:</label>
+        <input type="text" id="telefoneOrcamento">
+      </div>
+      <div class="form-group">
+        <label for="emailOrcamento">E-mail:</label>
+        <input type="email" id="emailOrcamento">
+      </div>
+      <div class="form-group">
+        <label for="statusOrcamento">Status:</label>
+        <select id="statusOrcamento">
+          <option value="Em Aberto">Em Aberto</option>
+          <option value="Aprovado">Aprovado</option>
+          <option value="Rejeitado">Rejeitado</option>
+        </select>
+      </div>
+    </div>
+
+    <h3>Itens do Orçamento</h3>
+    <div class="grid-flex">
+      <div class="form-group">
+        <label for="item1">Tipo de Cirurgia:</label>
+        <input type="text" id="item1">
+      </div>
+      <div class="form-group">
+        <label for="qtde1">Valor Clínica:</label>
+        <input type="number" id="qtde1" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label for="precoUnit1">Valor Hospital:</label>
+        <input type="number" id="precoUnit1" value="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label for="item2">Materiais:</label>
+        <input type="text" id="item2">
+      </div>
+      <div class="form-group">
+        <label for="qtde2">Valor Material:</label>
+        <input type="number" id="qtde2" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label for="precoUnit2">Valor Clínica Final:</label>
+        <input type="number" id="precoUnit2" value="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label for="taxa">Taxa (%):</label>
+        <input type="number" id="taxa" value="0" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label for="desconto">Desconto (%):</label>
+        <input type="number" id="desconto" value="0" min="0" step="0.01">
+      </div>
+    </div>
+    <button type="submit" id="saveBudgetBtn">Salvar Orçamento</button>
+    <button type="button" id="cancelEditBtn" style="display:none;">Cancelar Edição</button>
+    <button type="button">Exportar</button>
+    <button type="button">Imprimir</button>
+  </form>
+
+  <hr>
+
+  <h2>Orçamentos Existentes</h2>
+  <div class="filters">
+    <label for="statusFilter">Filtrar por Status:</label>
+    <select id="statusFilter">
+      <option value="Todos">Todos</option>
+      <option value="Em Aberto">Em Aberto</option>
+      <option value="Aprovado">Aprovado</option>
+      <option value="Rejeitado">Rejeitado</option>
+    </select>
+  </div>
+
+  <div class="table-container">
+    <table id="budgetsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>WhatsApp</th>
+          <th>Email</th>
+          <th>Data Criação</th>
+          <th>Status</th>
+          <th>Tipo de Cirurgia</th>
+          <th>Valor Clínica</th>
+          <th>Valor Hospital</th>
+          <th>Total Item 1</th>
+          <th>Materiais</th>
+          <th>Valor Material</th>
+          <th>Valor Clínica Final</th>
+          <th>Total Item 2</th>
+          <th>Taxa (%)</th>
+          <th>Desconto (%)</th>
+          <th>Total Final</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dados serão carregados aqui pelo JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

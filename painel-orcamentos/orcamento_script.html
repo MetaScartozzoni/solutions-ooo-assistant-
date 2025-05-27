@@ -1,0 +1,130 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initOrcamento();
+});
+
+function initOrcamento() {
+  loadOrcamentos();
+  document.getElementById('budgetForm').addEventListener('submit', handleOrcamentoSubmit);
+  document.getElementById('cancelEditBtn').addEventListener('click', resetOrcamentoForm);
+  document.getElementById('statusFilter').addEventListener('change', loadOrcamentos);
+}
+
+function loadOrcamentos() {
+  google.script.run
+    .withSuccessHandler(displayOrcamentos)
+    .withFailureHandler(showError)
+    .getBudgets();
+}
+
+function displayOrcamentos(data) {
+  const tbody = document.querySelector('#budgetsTable tbody');
+  tbody.innerHTML = '';
+  const filtro = document.getElementById('statusFilter').value;
+  const filtradas = filtro === 'Todos' ? data : data.filter(b => b.Status === filtro);
+
+  filtradas.forEach(budget => {
+    const tr = tbody.insertRow();
+    const campos = [
+      'ID', 'Cliente', 'Data Criação', 'Status',
+      'Tipo de Cirurgia', 'Valor Clínica', 'Valor Hospital', 'Total Item 1',
+      'Materiais', 'Valor Material', 'Valor Clínica Final', 'Total Item 2',
+      'Taxa (%)', 'Desconto (%)', 'Total Final'
+    ];
+    campos.forEach(c => tr.insertCell().textContent = budget[c] || '');
+
+    const acoes = tr.insertCell();
+    const editar = document.createElement('button');
+    editar.textContent = 'Editar';
+    editar.onclick = () => carregarOrcamentoParaEdicao(budget);
+    acoes.appendChild(editar);
+
+    const excluir = document.createElement('button');
+    excluir.textContent = 'Excluir';
+    excluir.style.marginLeft = '5px';
+    excluir.onclick = () => deletarOrcamento(budget.ID);
+    acoes.appendChild(excluir);
+  });
+}
+
+function handleOrcamentoSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('saveBudgetBtn');
+  btn.disabled = true;
+
+  const id = document.getElementById('budgetId').value;
+  const dados = {
+    Cliente: document.getElementById('clienteOrcamento').value,
+    Status: document.getElementById('statusOrcamento').value,
+    'Item 1': document.getElementById('item1').value,
+    'Qtde 1': parseFloat(document.getElementById('qtde1').value) || 0,
+    'Preço Unit 1': parseFloat(document.getElementById('precoUnit1').value) || 0,
+    'Item 2': document.getElementById('item2').value,
+    'Qtde 2': parseFloat(document.getElementById('qtde2').value) || 0,
+    'Preço Unit 2': parseFloat(document.getElementById('precoUnit2').value) || 0,
+    'Taxa (%)': parseFloat(document.getElementById('taxa').value) || 0,
+    'Desconto (%)': parseFloat(document.getElementById('desconto').value) || 0
+  };
+
+  if (!dados.Cliente || dados.Cliente.length < 2) {
+    alert('Nome do paciente é obrigatório.');
+    btn.disabled = false;
+    return;
+  }
+
+  const callback = () => {
+    resetOrcamentoForm();
+    loadOrcamentos();
+    btn.disabled = false;
+  };
+
+  if (id) {
+    google.script.run
+      .withSuccessHandler(callback)
+      .withFailureHandler(err => { showError(err); btn.disabled = false; })
+      .updateBudget(parseInt(id), dados);
+  } else {
+    google.script.run
+      .withSuccessHandler(callback)
+      .withFailureHandler(err => { showError(err); btn.disabled = false; })
+      .addBudget(dados);
+  }
+}
+
+function carregarOrcamentoParaEdicao(row) {
+  document.getElementById('budgetId').value = row.ID;
+  document.getElementById('clienteOrcamento').value = row.Cliente;
+  document.getElementById('statusOrcamento').value = row.Status;
+  document.getElementById('item1').value = row['Item 1'];
+  document.getElementById('qtde1').value = row['Qtde 1'];
+  document.getElementById('precoUnit1').value = row['Preço Unit 1'];
+  document.getElementById('item2').value = row['Item 2'];
+  document.getElementById('qtde2').value = row['Qtde 2'];
+  document.getElementById('precoUnit2').value = row['Preço Unit 2'];
+  document.getElementById('taxa').value = row['Taxa (%)'];
+  document.getElementById('desconto').value = row['Desconto (%)'];
+
+  document.getElementById('saveBudgetBtn').textContent = 'Atualizar Orçamento';
+  document.getElementById('cancelEditBtn').style.display = 'inline-block';
+}
+
+function resetOrcamentoForm() {
+  document.getElementById('budgetForm').reset();
+  document.getElementById('budgetId').value = '';
+  document.getElementById('saveBudgetBtn').textContent = 'Salvar Orçamento';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+function deletarOrcamento(id) {
+  if (confirm('Deseja excluir este orçamento?')) {
+    google.script.run
+      .withSuccessHandler(loadOrcamentos)
+      .withFailureHandler(showError)
+      .deleteBudget(parseInt(id));
+  }
+}
+
+function showError(error) {
+  alert('Erro: ' + error.message);
+}
+</script>
