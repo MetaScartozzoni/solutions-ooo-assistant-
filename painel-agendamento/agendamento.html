@@ -1,174 +1,201 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Painel de Agendamento</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #e4ecf8;
-      color: #0a2463;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 30px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    }
-    h1, h2 {
-      text-align: center;
-      color: #0a2463;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #d4af37;
-      color: #0a2463;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin: 5px 5px 15px 0;
-    }
-    button:hover {
-      background-color: #b9982f;
-    }
-    .grid-flex {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 15px;
-    }
-    .table-container {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-    th {
-      background-color: #f8f9fa;
-    }
-    tr:nth-child(even) {
-      background-color: #f1f1f1;
-    }
-    .filters {
-      margin-bottom: 20px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-  </style>
-</head>
-<body>
-<div class="container">
-  <h1>Painel de Agendamento</h1>
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Agendamento</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #e4ecf8;
+        color: #0a2463;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        text-align: center;
+        color: #0a2463;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #d4af37;
+        color: #0a2463;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        margin: 5px 5px 15px 0;
+      }
+      button:hover {
+        background-color: #b9982f;
+      }
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+      .grid-flex {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f8f9fa;
+      }
+      tr:nth-child(even) {
+        background-color: #f1f1f1;
+      }
+      .filters {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .hidden {
+        display: none;
+      }
 
-  <h2>Adicionar/Editar Agendamento</h2>
-  <form id="appointmentForm">
-    <input type="hidden" id="appointmentId" value="">
-    <div class="grid-flex">
-      <div class="form-group">
-        <label for="dataAgendamento">Data:</label>
-        <input type="date" id="dataAgendamento" required>
-      </div>
-      <div class="form-group">
-        <label for="horaAgendamento">Hora:</label>
-        <input type="time" id="horaAgendamento" required>
-      </div>
-      <div class="form-group">
-        <label for="clienteAgendamento">Cliente:</label>
-        <input type="text" id="clienteAgendamento" required>
-      </div>
-      <div class="form-group">
-        <label for="whatsappAgendamento">WhatsApp:</label>
-        <input type="text" id="whatsappAgendamento">
-      </div>
-      <div class="form-group">
-        <label for="emailClienteAgendamento">Email Cliente:</label>
-        <input type="email" id="emailClienteAgendamento">
-      </div>
-      <div class="form-group">
-        <label for="servicoAgendamento">Serviço:</label>
-        <input type="text" id="servicoAgendamento" required>
-      </div>
-      <div class="form-group">
-        <label for="statusAgendamento">Status:</label>
-        <select id="statusAgendamento">
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Painel de Agendamento</h1>
+
+      <h2>Adicionar/Editar Agendamento</h2>
+      <form id="appointmentForm">
+        <input type="hidden" id="appointmentId" value="" />
+        <div class="grid-flex">
+          <div class="form-group">
+            <label for="dataAgendamento">Data:</label>
+            <input type="date" id="dataAgendamento" required />
+          </div>
+          <div class="form-group">
+            <label for="horaAgendamento">Hora:</label>
+            <input type="time" id="horaAgendamento" required />
+          </div>
+          <div class="form-group">
+            <label for="clienteAgendamento">Cliente:</label>
+            <input type="text" id="clienteAgendamento" required />
+          </div>
+          <div class="form-group">
+            <label for="whatsappAgendamento">WhatsApp:</label>
+            <input type="text" id="whatsappAgendamento" />
+          </div>
+          <div class="form-group">
+            <label for="emailClienteAgendamento">Email Cliente:</label>
+            <input type="email" id="emailClienteAgendamento" />
+          </div>
+          <div class="form-group">
+            <label for="servicoAgendamento">Serviço:</label>
+            <input type="text" id="servicoAgendamento" required />
+          </div>
+          <div class="form-group">
+            <label for="statusAgendamento">Status:</label>
+            <select id="statusAgendamento">
+              <option value="Pendente">Pendente</option>
+              <option value="Confirmado">Confirmado</option>
+            </select>
+            <div class="form-group full-width"></div>
+          </div>
+        </div>
+        <!-- Closing grid-flex -->
+        <div class="form-group full-width">
+          <label for="observacoesAgendamento">Observações:</label>
+          <button type="button" id="cancelEditBtn1" class="hidden">
+            Cancelar Edição
+          </button>
+          <button type="button" id="cancelEditBtn2" class="hidden">
+            Cancelar Edição
+          </button>
+        </div>
+        <button type="button" id="cancelEditBtn3" class="hidden">
+          Cancelar Edição
+        </button>
+        <button type="button" id="cancelEditBtn4" class="hidden">
+          Cancelar Edição
+        </button>
+        <button type="button" id="cancelEditBtn5" class="hidden">
+          Cancelar Edição
+        </button>
+        <button type="button">Imprimir</button>
+      </form>
+
+      <hr />
+
+      <h2>Próximos Agendamentos</h2>
+      <div class="filters">
+        <label for="statusFilter">Filtrar por Status:</label>
+        <select id="statusFilter">
+          <option value="Todos">Todos</option>
           <option value="Pendente">Pendente</option>
           <option value="Confirmado">Confirmado</option>
           <option value="Cancelado">Cancelado</option>
         </select>
       </div>
-      <div class="form-group" style="grid-column: 1 / -1;">
-        <label for="observacoesAgendamento">Observações:</label>
-        <textarea id="observacoesAgendamento" rows="3"></textarea>
+
+      <div class="table-container">
+        <table id="appointmentsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Hora</th>
+              <th>Cliente</th>
+              <th>Email Cliente</th>
+              <th>WhatsApp</th>
+              <th>Serviço</th>
+              <th>Status</th>
+              <th>Iniciar Consulta</th>
+              <th>Gerar Orçamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Linhas de agendamentos serão inseridas dinamicamente com os botões Iniciar Consulta e Gerar Orçamento -->
+          </tbody>
+        </table>
       </div>
     </div>
-    <button type="submit" id="saveAppointmentBtn">Salvar Agendamento</button>
-    <button type="button" id="cancelEditBtn" style="display:none;">Cancelar Edição</button>
-    <button type="button">Exportar</button>
-    <button type="button">Imprimir</button>
-  </form>
-
-  <hr>
-
-  <h2>Próximos Agendamentos</h2>
-  <div class="filters">
-    <label for="statusFilter">Filtrar por Status:</label>
-    <select id="statusFilter">
-      <option value="Todos">Todos</option>
-      <option value="Pendente">Pendente</option>
-      <option value="Confirmado">Confirmado</option>
-      <option value="Cancelado">Cancelado</option>
-    </select>
-  </div>
-
-  <div class="table-container">
-    <table id="appointmentsTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Data</th>
-          <th>Hora</th>
-          <th>Cliente</th>
-          <th>Email Cliente</th>
-          <th>WhatsApp</th>
-          <th>Serviço</th>
-          <th>Status</th>
-          <th>Iniciar Consulta</th>
-          <th>Gerar Orçamento</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Linhas de agendamentos serão inseridas dinamicamente com os botões Iniciar Consulta e Gerar Orçamento -->
-      </tbody>
-    </table>
-  </div>
-</div>
-</body>
+  </body>
 </html>

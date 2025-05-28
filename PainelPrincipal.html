@@ -1,0 +1,271 @@
+<!doctype html>
+<!-- PainelPrincipal.html - Versão Final Integrada -->
+<html lang="pt-BR">
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Pacientes</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f0f0f0;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .filtros {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      select,
+      input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 250px;
+      }
+      .lista {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .lista li {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+      }
+      .lista li:hover {
+        background: #f9f9f9;
+      }
+      .dados-paciente {
+        background: #fafafa;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 20px;
+      }
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        background: #1976d2;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0d47a1;
+      }
+      .danger {
+        background: #e53935;
+      }
+      .danger:hover {
+        background: #b71c1c;
+      }
+      #dashboardTotais {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      .card-etapa {
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        padding: 20px;
+        min-width: 180px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dashboardTotais"></div>
+    <div class="container">
+      <h1>Painel de Pacientes – Clínica Dr. Marcio Scartozzoni</h1>
+      <div class="filtros">
+        <select
+          id="etapaFiltro"
+          title="Filtrar por etapa"
+          onchange="carregarPacientes()"
+        ></select>
+        <input
+          type="text"
+          id="busca"
+          placeholder="Buscar por nome ou CPF"
+          oninput="filtrarLista()"
+        />
+      </div>
+      <ul id="listaPacientes" class="lista"></ul>
+      <div id="painelDados"></div>
+      <div id="botoesAcoes" class="buttons"></div>
+    </div>
+    <script>
+      let permissoes = {};
+      let pacientes = [];
+      let etapaSelecionada = "";
+      let linhaSelecionadaGlobal = 0;
+
+      window.onload = () => {
+        google.script.run.withSuccessHandler(initPainel).getPermissoesUsuario();
+        google.script.run
+          .withSuccessHandler(mostrarTotaisPorEtapa)
+          .getTotaisPorEtapa();
+      };
+
+      function initPainel(data) {
+        if (!data.autorizado) {
+          document.body.innerHTML =
+            '<div style="text-align:center; padding: 60px; font-family: sans-serif;"><h2>❌ Acesso Negado</h2><p>' +
+            data.mensagem +
+            "</p><p>Entre em contato com o administrador da clínica.</p></div>";
+          return;
+        }
+        permissoes = data;
+        const select = document.getElementById("etapaFiltro");
+        data.etapas.forEach((e) => {
+          const opt = document.createElement("option");
+          opt.value = e;
+          opt.textContent = e;
+          select.appendChild(opt);
+        });
+        if (data.etapas.length > 0) {
+          etapaSelecionada = data.etapas[0];
+          carregarPacientes();
+        }
+      }
+
+      function mostrarTotaisPorEtapa(lista) {
+        const painel = document.getElementById("dashboardTotais");
+        painel.innerHTML = "";
+        lista.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card-etapa";
+          card.innerHTML = `<strong>${item.etapa}</strong><br><span style="font-size: 20px;">${item.total}</span>`;
+          painel.appendChild(card);
+        });
+      }
+
+      function carregarPacientes() {
+        etapaSelecionada = document.getElementById("etapaFiltro").value;
+        google.script.run
+          .withSuccessHandler(mostrarPacientes)
+          .getPacientesPorEtapa(etapaSelecionada);
+      }
+
+      function mostrarPacientes(lista) {
+        pacientes = lista;
+        const ul = document.getElementById("listaPacientes");
+        ul.innerHTML = "";
+        lista.forEach((p) => {
+          const li = document.createElement("li");
+          li.textContent = `${p.nome} – CPF: ${p.cpf}`;
+          li.onclick = () => carregarDetalhes(p.linha);
+          ul.appendChild(li);
+        });
+      }
+
+      function filtrarLista() {
+        const termo = document.getElementById("busca").value.toLowerCase();
+        const ul = document.getElementById("listaPacientes");
+        ul.innerHTML = "";
+        pacientes
+          .filter(
+            (p) => p.nome.toLowerCase().includes(termo) || p.cpf.includes(termo)
+          )
+          .forEach((p) => {
+            const li = document.createElement("li");
+            li.textContent = `${p.nome} – CPF: ${p.cpf}`;
+            li.onclick = () => carregarDetalhes(p.linha);
+            ul.appendChild(li);
+          });
+      }
+
+      function carregarDetalhes(linha) {
+        linhaSelecionadaGlobal = linha;
+        google.script.run
+          .withSuccessHandler((dados) => {
+            const div = document.getElementById("painelDados");
+            div.innerHTML = `
+        <div class="dados-paciente">
+          <strong>Nome:</strong> ${dados.nome}<br>
+          <strong>CPF:</strong> ${dados.cpf}<br>
+          <strong>Telefone:</strong> ${dados.telefone}<br>
+          <strong>E-mail:</strong> ${dados.email}<br>
+          <strong>Etapa:</strong> ${dados.etapa}<br>
+          <strong>Status:</strong> ${dados.status}<br>
+          <strong>Origem:</strong> ${dados.origem}<br>
+          <strong>Responsável:</strong> ${dados.responsavel}<br>
+          <strong>Observações:</strong> ${dados.obs || "-"}<br>
+        </div>
+      `;
+            const botoes = document.getElementById("botoesAcoes");
+            botoes.innerHTML = "";
+            permissoes.acoes.forEach((acao) => {
+              const btn = document.createElement("button");
+              btn.textContent = acaoFormatado(acao);
+              btn.onclick = () => executarAcao(acao);
+              if (acao.includes("Recusado")) btn.classList.add("danger");
+              botoes.appendChild(btn);
+            });
+          })
+          .getPacienteDetalhado(etapaSelecionada, linha);
+      }
+
+      function executarAcao(acao) {
+        google.script.run
+          .withSuccessHandler(() => {
+            alert("✅ Ação realizada com sucesso.");
+            carregarPacientes();
+            document.getElementById("painelDados").innerHTML = "";
+            document.getElementById("botoesAcoes").innerHTML = "";
+          })
+          .withFailureHandler((err) => alert("❌ Erro: " + err.message))
+          .executarAcaoPainel(acao, etapaSelecionada, linhaSelecionadaGlobal);
+      }
+
+      function acaoFormatado(nome) {
+        const mapa = {
+          marcarComoAceito: "✔️ ACEITO",
+          marcarComoRecusado: "❌ RECUSADO",
+          enviarParaConsulta: "➡️ Enviar para Consulta",
+          enviarParaOrcamento: "➡️ Enviar para Orçamento",
+          enviarParaGestao: "➡️ Enviar para Gestão",
+          enviarParaCirurgia: "➡️ Enviar para Cirurgia",
+        };
+        return mapa[nome] || nome;
+      }
+    </script>
+  </body>
+</html>
+""" output_path = Path("/mnt/data/PainelPrincipal.html")
+output_path.write_text(html_code, encoding="utf-8") output_path.name # Output
+the name of the file created

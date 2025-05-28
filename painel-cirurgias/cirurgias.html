@@ -1,159 +1,380 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Painel de Gestão de Cirurgias</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #e4ecf8;
-      color: #0a2463;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 30px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    }
-    h1, h2 {
-      text-align: center;
-      color: #0a2463;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #d4af37;
-      color: #0a2463;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin: 5px 5px 15px 0;
-    }
-    button:hover {
-      background-color: #b9982f;
-    }
-    .grid-flex {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 15px;
-    }
-    .table-container {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-    th {
-      background-color: #f8f9fa;
-    }
-    tr:nth-child(even) {
-      background-color: #f1f1f1;
-    }
-    .filters {
-      margin-bottom: 20px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-  </style>
-</head>
-<body>
-<div class="container">
-  <h1>Painel de Gestão de Cirurgias</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel de Gestão de Cirurgias</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #e4ecf8;
+        color: #0a2463;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        text-align: center;
+        color: #0a2463;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #d4af37;
+        color: #0a2463;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        margin: 5px 5px 15px 0;
+      }
+      button:hover {
+        background-color: #b9982f;
+      }
+      .grid-flex {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+      }
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f8f9fa;
+      }
+      tr:nth-child(even) {
+        background-color: #f1f1f1;
+      }
+      .filters {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .hidden {
+        display: none;
+      }
 
-  <h2>Cadastro de Cirurgia</h2>
-  <form id="cirurgiaForm">
-    <input type="hidden" id="cirurgiaId">
-    <div class="grid-flex">
-      <div class="form-group"><label for="nome">Nome do Paciente</label><input type="text" id="nome"></div>
-      <div class="form-group"><label for="nascimento">Data de Nascimento</label><input type="date" id="nascimento"></div>
-      <div class="form-group"><label for="cpf">CPF</label><input type="text" id="cpf"></div>
-      <div class="form-group"><label for="telefone">Telefone</label><input type="text" id="telefone"></div>
-      <div class="form-group"><label for="hospital">Hospital</label><input type="text" id="hospital"></div>
-      <div class="form-group"><label for="tipo">Tipo de Cirurgia</label><input type="text" id="tipo"></div>
-      <div class="form-group"><label for="protese">Prótese - Marca</label><input type="text" id="protese"></div>
-      <div class="form-group"><label for="laser">Laser</label><input type="text" id="laser"></div>
-      <div class="form-group"><label for="anestesista">Anestesista</label><input type="text" id="anestesista"></div>
-      <div class="form-group"><label for="instrumentadora">Instrumentadora</label><input type="text" id="instrumentadora"></div>
-      <div class="form-group"><label for="dataCirurgia">Data da Cirurgia</label><input type="date" id="dataCirurgia"></div>
-      <div class="form-group"><label for="horaInternacao">Hora Internação</label><input type="time" id="horaInternacao"></div>
-      <div class="form-group"><label for="horaInicio">Hora Início</label><input type="time" id="horaInicio"></div>
-      <div class="form-group"><label for="tempoSala">Tempo de Sala</label><input type="text" id="tempoSala"></div>
-      <div class="form-group"><label for="retorno">Data Retorno</label><input type="date" id="retorno"></div>
-      <div class="form-group" style="grid-column: 1/-1;"><label for="observacao">Observações</label><textarea id="observacao" rows="3"></textarea></div>
-      <div class="form-group"><label for="status">Status Cirurgia</label><select id="status"><option>Pendente</option><option>Realizada</option><option>Cancelada</option></select></div>
-      <div class="form-group"><label for="financeiro">Status Financeiro</label><select id="financeiro"><option>Pendente</option><option>Pago</option></select></div>
-      <div class="form-group"><label for="termos">Status Termos</label><select id="termos"><option>Pendente</option><option>Assinado</option></select></div>
+      #cancelEditBtnSecondary.hidden {
+        display: none;
+      }
+
+      .btn-voltar-menu {
+        margin-top: 10px;
+        padding: 10px 20px;
+        background-color: #d4af37;
+        border: none;
+        color: #0a2463;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .btn-voltar-menu:hover {
+        background-color: #b9982f;
+      }
+
+      #cancelEditBtn.hidden {
+        display: none;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: #0a2463;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Painel de Gestão de Cirurgias</h1>
+
+      <h2>Cadastro de Cirurgia</h2>
+      <form id="cirurgiaForm">
+        <input type="hidden" id="idPaciente" value="" />
+        <div class="grid-flex">
+          <div class="form-group">
+            <label for="nomePaciente">Nome do Paciente</label>
+            <input type="text" id="nomePaciente" required />
+          </div>
+          <div class="form-group">
+            <label for="nascimento">Data de Nascimento</label
+            ><input type="date" id="nascimento" />
+          </div>
+          <div class="form-group">
+            <label for="cpf">CPF</label><input type="text" id="cpf" />
+          </div>
+          <div class="form-group">
+            <label for="telefone">Telefone</label
+            ><input type="text" id="telefone" />
+          </div>
+          <div class="form-group">
+            <label for="hospital">Hospital</label
+            ><input type="text" id="hospital" />
+          </div>
+          <div class="form-group">
+            <label for="tipoCirurgia">Tipo de Cirurgia</label
+            ><input type="text" id="tipoCirurgia" required />
+          </div>
+          <div class="form-group">
+            <label for="protese">Prótese - Marca</label
+            ><input type="text" id="protese" />
+          </div>
+          <div class="form-group">
+            <label for="laser">Laser</label><input type="text" id="laser" />
+          </div>
+          <div class="form-group">
+            <label for="anestesista">Anestesista</label
+            ><input type="text" id="anestesista" />
+          </div>
+          <div class="form-group">
+            <label for="instrumentadora">Instrumentadora</label
+            ><input type="text" id="instrumentadora" />
+          </div>
+          <div class="form-group">
+            <label for="dataCirurgia">Data da Cirurgia</label
+            ><input type="date" id="dataCirurgia" />
+          </div>
+          <div class="form-group">
+            <label for="horaInternacao">Hora Internação</label
+            ><input type="time" id="horaInternacao" />
+          </div>
+          <div class="form-group">
+            <label for="horaInicio">Hora Início</label
+            ><input type="time" id="horaInicio" />
+          </div>
+          <div class="form-group">
+            <label for="tempoSala">Tempo de Sala</label
+            ><input type="text" id="tempoSala" />
+          </div>
+          <!-- Campo de Retorno -->
+          <div class="form-group full-width">
+            <label for="retorno">Data de Retorno</label>
+            <input type="date" id="retorno" />
+          </div>
+          <div class="form-group full-width">
+            <label for="observacao">Observações</label>
+            <textarea id="observacao" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="statusCirurgia">Status Cirurgia</label>
+            <select id="statusCirurgia">
+              <option>Pendente</option>
+              <option>Realizada</option>
+              <option>Cancelada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="financeiro">Status Financeiro</label>
+            <select id="financeiro">
+              <option>Pendente</option>
+              <option>Pago</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="termos">Status Termos</label>
+            <select id="termos">
+              <option>Pendente</option>
+              <option>Assinado</option>
+            </select>
+          </div>
+        </div>
+        <!-- fecha .grid-flex -->
+
+        <!-- Botões de ação -->
+        <div class="action-buttons">
+          <button type="button" id="cancelEditBtn" class="hidden">
+            Cancelar Edição
+          </button>
+          <button type="submit" id="saveCirurgiaBtn">Salvar Cirurgia</button>
+          <button type="button" class="export-btn">Exportar</button>
+          <button type="button" class="print-btn">Imprimir</button>
+        </div>
+      </form>
+
+      <hr />
+
+      <h2>Cirurgias Cadastradas</h2>
+      <div class="filters">
+        <label for="statusFilter">Filtrar por Status:</label>
+        <select id="statusFilter">
+          <option value="Todos">Todos</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Realizada">Realizada</option>
+          <option value="Cancelada">Cancelada</option>
+        </select>
+      </div>
+
+      <div class="table-container">
+        <table id="cirurgiasTable">
+          <thead>
+            <tr>
+              <th>Paciente</th>
+              <th>Data</th>
+              <th>Cirurgia</th>
+              <!-- adicione aqui os outros <th> necessários -->
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Botão para voltar ao menu principal -->
+      <div class="navigation-buttons">
+        <button
+          type="button"
+          class="btn-voltar-menu"
+          onclick="window.location.href='index.html'"
+        >
+          Voltar ao Menu Principal
+        </button>
+      </div>
+
+      <footer class="footer">&copy; 2025 Clínica Dr. Marcio Scartozzoni</footer>
     </div>
-    <button type="submit">Salvar Cirurgia</button>
-    <button type="button" id="cancelEditBtn" style="display:none;">Cancelar Edição</button>
-    <button type="button">Exportar</button>
-    <button type="button">Imprimir</button>
-  </form>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        initCirurgias();
+      });
 
-  <hr>
+      function initCirurgias() {
+        loadCirurgias();
+        document
+          .getElementById("cirurgiaForm")
+          .addEventListener("submit", handleCirurgiaSubmit);
+        document
+          .getElementById("cancelEditBtn")
+          .addEventListener("click", resetCirurgiaForm);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", loadCirurgias);
+      }
 
-  <h2>Cirurgias Cadastradas</h2>
-  <div class="filters">
-    <label for="statusFilter">Filtrar por Status:</label>
-    <select id="statusFilter">
-      <option value="Todos">Todos</option>
-      <option value="Pendente">Pendente</option>
-      <option value="Realizada">Realizada</option>
-      <option value="Cancelada">Cancelada</option>
-    </select>
-  </div>
+      function loadCirurgias() {
+        google.script.run
+          .withSuccessHandler(displayCirurgias)
+          .withFailureHandler(showError)
+          .getCirurgias();
+      }
 
-  <div class="table-container">
-    <table id="cirurgiasTable">
-      <thead>
-        <tr>
-          <th>Paciente</th>
-          <th>Data</th>
-          <th>Cirurgia</th>
-          <th>Hospital</th>
-          <th>Status</th>
-          <th>Financeiro</th>
-          <th>Termos</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Dados dinâmicos -->
-      </tbody>
-    </table>
-  </div>
+      function displayCirurgias(data) {
+        const tbody = document.querySelector("#cirurgiasTable tbody");
+        tbody.innerHTML = "";
+        const filtro = document.getElementById("statusFilter").value;
+        data
+          .filter((r) => filtro === "Todos" || r.StatusCirurgia === filtro)
+          .forEach((row) => {
+            const tr = tbody.insertRow();
+            [
+              "ID_Paciente",
+              "Nome",
+              "Data de Nascimento",
+              "CPF",
+              "Telefone",
+              "Hospital",
+              "Tipo de Cirurgia",
+              "Prótese - Marca",
+              "Laser",
+              "NomeAnestesista",
+              "NomeInstrumentadora",
+              "Data da Cirurgia",
+              "Hora Internação",
+              "Hora do Início da Cirurgia",
+              "Tempo de sala",
+              "DataRetorno",
+              "Observação",
+              "StatusCirurgia",
+            ].forEach((campo) => {
+              tr.insertCell().textContent = row[campo] || "";
+            });
+          });
+      }
 
-  <footer style="text-align: center; padding: 20px; color: #0a2463; font-size: 14px;">
-    <p>&copy; 2025 Clínica Dr. Marcio Scartozzoni — Sistema Integrado</p>
-    <button onclick="window.location.href='index.html'" style="margin-top: 10px; padding: 10px 20px; background-color: #d4af37; border: none; color: #0a2463; border-radius: 4px; font-weight: bold; cursor: pointer;">Voltar ao Menu Principal</button>
-  </footer>
-</div>
-</body>
+      function handleCirurgiaSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById("saveCirurgiaBtn");
+        btn.disabled = true;
+
+        const dados = {
+          ID_Paciente: document.getElementById("idPaciente").value,
+          Nome: document.getElementById("nomePaciente").value,
+          TipoCirurgia: document.getElementById("tipoCirurgia").value,
+          Hospital: document.getElementById("hospital").value,
+          DataCirurgia: document.getElementById("dataCirurgia").value,
+          StatusCirurgia: document.getElementById("statusCirurgia").value,
+        };
+
+        if (!dados.ID_Paciente || !dados.Nome) {
+          alert("Preencha os campos obrigatórios.");
+          btn.disabled = false;
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(() => {
+            resetCirurgiaForm();
+            loadCirurgias();
+            btn.disabled = false;
+          })
+          .withFailureHandler((err) => {
+            showError(err);
+            btn.disabled = false;
+          })
+          .addCirurgia(dados);
+      }
+
+      function resetCirurgiaForm() {
+        document.getElementById("cirurgiaForm").reset();
+        document.getElementById("saveCirurgiaBtn").textContent =
+          "Salvar Cirurgia";
+        document.getElementById("cancelEditBtn").style.display = "none";
+      }
+
+      function showError(error) {
+        alert("Erro: " + error.message);
+      }
+    </script>
+  </body>
 </html>

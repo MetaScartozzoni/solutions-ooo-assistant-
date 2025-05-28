@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📚 Histórico Operacional</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f8f8f8;
+        padding: 30px;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        color: #2e7d32;
+      }
+      .filtros {
+        margin: 20px 0;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      select,
+      input[type="text"] {
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      button.exportar,
+      button.exportarPNG {
+        background: #1976d2;
+        color: white;
+        padding: 10px 20px;
+        font-size: 14px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 10px auto;
+        display: block;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        background: #c8e6c9;
+        color: #1b5e20;
+      }
+      tr:nth-child(even) {
+        background: #f1f8e9;
+      }
+      .indicadores {
+        margin-top: 40px;
+      }
+      .indicadores table {
+        background: #fff;
+        border: 1px solid #ccc;
+      }
+      .indicadores th {
+        background: #bbdefb;
+        color: #0d47a1;
+      }
+      .grafico {
+        margin-top: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📚 Histórico Operacional</h1>
+
+    <div class="filtros">
+      <label for="filtroEtapa">Filtrar por Etapa:</label>
+      <select id="filtroEtapa">
+        <option value="">Todas as Etapas</option>
+        <option value="Pré-Consulta">Pré-Consulta</option>
+        <option value="Consulta">Consulta</option>
+        <option value="Orçamento">Orçamento</option>
+        <option value="Gestão de Orçamento">Gestão de Orçamento</option>
+        <option value="Cirurgia">Cirurgia</option>
+        <option value="Recusado">Recusado</option>
+      </select>
+      <input type="text" id="filtroNome" placeholder="Buscar por nome..." />
+      <label for="filtroPeriodo">Filtrar por Período:</label>
+      <select id="filtroPeriodo">
+        <option value="">Todos os períodos</option>
+        <option value="7">Últimos 7 dias</option>
+        <option value="30">Últimos 30 dias</option>
+      </select>
+      <input type="text" id="filtroAcao" placeholder="Filtrar por ação..." />
+    </div>
+
+    <button class="exportar" onclick="baixarCSV()">
+      📥 Baixar Histórico (.CSV)
+    </button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Ação</th>
+          <th>Usuário</th>
+          <th>Nome</th>
+          <th>De</th>
+          <th>Para</th>
+          <th>Obs</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaHistorico"></tbody>
+    </table>
+
+    <div class="indicadores">
+      <h2>📈 Indicadores por Colaborador</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Colaborador (e-mail)</th>
+            <th>Total de Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaIndicadores"></tbody>
+      </table>
+    </div>
+
+    <div class="grafico">
+      <h2>📊 Ações por Colaborador</h2>
+      <canvas id="graficoBarras" height="100"></canvas>
+      <button class="exportarPNG" onclick="baixarGraficoComoPNG()">
+        📸 Baixar Gráfico (.PNG)
+      </button>
+    </div>
+
+    <script>
+      let historico = [];
+      let chartRef;
+
+      function carregarHistorico() {
+        google.script.run
+          .withSuccessHandler(renderTabela)
+          .getHistoricoOperacional();
+        google.script.run
+          .withSuccessHandler((dados) => {
+            renderIndicadores(dados);
+            renderGrafico(dados);
+          })
+          .getIndicadoresPorColaborador();
+      }
+
+      function renderTabela(dados) {
+        historico = dados;
+        filtrar();
+      }
+
+      function filtrar() {
+        const etapa = document.getElementById("filtroEtapa").value;
+        const nome = document.getElementById("filtroNome").value.toLowerCase();
+        const periodo = parseInt(
+          document.getElementById("filtroPeriodo").value || 0
+        );
+        const acao = document.getElementById("filtroAcao").value.toLowerCase();
+
+        const hoje = new Date();
+        const tbody = document.getElementById("tabelaHistorico");
+        tbody.innerHTML = "";
+
+        historico
+          .filter((h) => {
+            const dataItem = new Date(h.data.split("/").reverse().join("-"));
+            const dentroPeriodo =
+              !periodo || (hoje - dataItem) / (1000 * 60 * 60 * 24) <= periodo;
+            return (
+              (!etapa || h.para === etapa || h.de === etapa) &&
+              (!nome || h.nome.toLowerCase().includes(nome)) &&
+              (!acao || h.acao.toLowerCase().includes(acao)) &&
+              dentroPeriodo
+            );
+          })
+          .forEach((h) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+          <td>${h.data}</td>
+          <td>${h.acao}</td>
+          <td>${h.usuario}</td>
+          <td>${h.nome}</td>
+          <td>${h.de}</td>
+          <td>${h.para}</td>
+          <td>${h.obs}</td>
+        `;
+            tbody.appendChild(row);
+          });
+      }
+
+      function renderIndicadores(dados) {
+        const tbody = document.getElementById("tabelaIndicadores");
+        tbody.innerHTML = "";
+        dados.forEach((i) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${i.usuario}</td><td>${i.total}</td>`;
+          tbody.appendChild(row);
+        });
+      }
+
+      function renderGrafico(dados) {
+        const ctx = document.getElementById("graficoBarras").getContext("2d");
+        if (chartRef) chartRef.destroy();
+        chartRef = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: dados.map((d) => d.usuario),
+            datasets: [
+              {
+                label: "Ações realizadas",
+                data: dados.map((d) => d.total),
+                backgroundColor: "rgba(30, 136, 229, 0.6)",
+                borderColor: "rgba(30, 136, 229, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        });
+      }
+
+      function baixarCSV() {
+        google.script.run
+          .withSuccessHandler(function (url) {
+            window.open(url, "_blank");
+          })
+          .exportarHistoricoParaCSV();
+      }
+
+      function baixarGraficoComoPNG() {
+        const link = document.createElement("a");
+        link.download = "grafico_acoes_colaborador.png";
+        link.href = document.getElementById("graficoBarras").toDataURL();
+        link.click();
+      }
+
+      document
+        .getElementById("filtroEtapa")
+        .addEventListener("change", filtrar);
+      document.getElementById("filtroNome").addEventListener("input", filtrar);
+      document
+        .getElementById("filtroPeriodo")
+        .addEventListener("change", filtrar);
+      document.getElementById("filtroAcao").addEventListener("input", filtrar);
+
+      window.onload = carregarHistorico;
+    </script>
+  </body>
+</html>
+
+<!--             }) -->
+<!--           .executarAcao(etapaSelecionada, linhaSelecionadaGlobal, acao); -->
+<!--             div.style.display = "block"; -->
+<!--             div.innerHTML = ` -->
+<!--         <h2>Detalhes do Paciente</h2> -->
+<!--         <p><strong>Nome:</strong> ${dados.nome}</p> -->
+<!--         <p><strong>CPF:</strong> ${dados.cpf}</p> -->
+<!--         <p><strong>Telefone:</strong> ${dados.telefone}</p> -->
+<!--         <p><strong>Email:</strong> ${dados.email}</p> -->
+<!--         <p><strong>Etapa:</strong> ${dados.etapa}</p> -->
+<!--         <p><strong>Status:</strong> ${dados.status}</p> -->
+<!--         <p><strong>Origem:</strong> ${dados.origem}</p> -->
+<!--         <p><strong>Responsável:</strong> ${dados.responsavel}</p> -->
+<!--         <p><strong>Observações:</strong> ${dados.obs || "-"}</p> -->
+<!--       `; -->
+<!--             const botoes = document.getElementById("botoesAcoes"); -->
+<!--             botoes.innerHTML = ""; -->
+<!--             permissoes.acoes.forEach((acao) => { -->
+<!--               const btn = document.createElement("button"); -->
+<!--               btn.textContent = acaoFormatado(acao); -->
+<!--               btn.onclick = () => executarAcao(acao); -->
+<!--               botoes.appendChild(btn); -->
+<!--             }); -->
+<!--           }) -->
+<!--           .carregarDetalhes(linha); -->
+<!--       } -->
+<!--       function acaoFormatado(acao) { -->
+<!--         return acao.charAt(0).toUpperCase() + acao.slice(1).toLowerCase(); -->
+<!--       } -->
+<!--       function executarAcao(acao) { -->
+<!--         google.script.run -->

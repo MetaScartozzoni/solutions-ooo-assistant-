@@ -1,180 +1,338 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Cadastro de Solicitações</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #e4ecf8;
-      color: #0a2463;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 30px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #0a2463;
-      text-align: center;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #d4af37;
-      color: #0a2463;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 5px 5px 15px 0;
-      font-weight: bold;
-    }
-    button:hover {
-      background-color: #b9982f;
-    }
-    .table-container {
-      overflow-x: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-    th {
-      background-color: #f8f9fa;
-    }
-    tr:nth-child(even) {
-      background-color: #f1f1f1;
-    }
-    .filters {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .grid-flex {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 15px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Painel de Solicitações</h1>
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Solicitações</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background-color: #e4ecf8;
+        color: #0a2463;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #0a2463;
+        text-align: center;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #d4af37;
+        color: #0a2463;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 5px 5px 15px 0;
+        font-weight: bold;
+      }
+      button:hover {
+        background-color: #b9982f;
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background-color: #f8f9fa;
+      }
+      tr:nth-child(even) {
+        background-color: #f1f1f1;
+      }
+      .filters {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .grid-flex {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+      }
 
-    <h2>Registrar Nova Solicitação</h2>
-    <form id="newRequestForm">
-      <div class="grid-flex">
-        <div class="form-group">
-          <label for="cliente">Cliente:</label>
-          <input type="text" id="cliente" required>
+      .full-width,
+      .form-group.full-width,
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
+      .grid-full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group-grid-full {
+        grid-column: 1 / -1;
+      }
+
+      .form-group-full-width {
+        grid-column: 1 / -1;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
+      .grid-full-width {
+        grid-column: 1 / -1;
+      }
+
+      .grid-column-full,
+      .form-group-grid-column-full {
+        grid-column: 1 / -1;
+      }
+      .grid-column-full,
+      .form-group.grid-column-full {
+        grid-column: 1 / -1;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group.grid-column-full {
+        grid-column: 1 / -1;
+      }
+      .grid-column-full {
+        grid-column: 1 / -1;
+      }
+      .grid-column-full {
+        grid-column: 1 / -1;
+      }
+      .grid-column-full {
+        grid-column: 1 / -1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Painel de Solicitações</h1>
+
+      <h2>Registrar Nova Solicitação</h2>
+      <form id="newRequestForm">
+        <div class="grid-flex">
+          <div class="form-group">
+            <label for="cliente">Cliente:</label>
+            <input type="text" id="cliente" required />
+          </div>
+          <div class="form-group">
+            <label for="telefone">WhatsApp:</label>
+            <input type="text" id="telefone" />
+          </div>
+          <div class="form-group">
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" />
+          </div>
+          <div class="form-group">
+            <label for="categoria">Categoria:</label>
+            <select id="categoria">
+              <option value="Exame">Exame</option>
+              <option value="Orçamento">Orçamento</option>
+              <option value="Agenda">Agenda</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="prioridade">Prioridade:</label>
+            <select id="prioridade">
+              <option value="Alta">Alta</option>
+              <option value="Média">Média</option>
+              <option value="Baixa">Baixa</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="assunto">Assunto:</label>
+            <input type="text" id="assunto" required />
+          </div>
+          <div class="form-group full-width">
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" rows="3" required></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label for="anexo">Anexos:</label>
+            <input type="file" id="anexo" multiple />
+          </div>
         </div>
-        <div class="form-group">
-          <label for="telefone">WhatsApp:</label>
-          <input type="text" id="telefone">
-        </div>
-        <div class="form-group">
-          <label for="email">E-mail:</label>
-          <input type="email" id="email">
-        </div>
-        <div class="form-group">
-          <label for="categoria">Categoria:</label>
-          <select id="categoria">
-            <option value="Exame">Exame</option>
-            <option value="Orçamento">Orçamento</option>
-            <option value="Agenda">Agenda</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="prioridade">Prioridade:</label>
-          <select id="prioridade">
-            <option value="Alta">Alta</option>
-            <option value="Média">Média</option>
-            <option value="Baixa">Baixa</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="responsavel">Responsável Inicial:</label>
-          <input type="text" id="responsavel" value="Equipe Atendimento">
-        </div>
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label for="assunto">Assunto:</label>
-          <input type="text" id="assunto" required>
-        </div>
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label for="descricao">Descrição:</label>
-          <textarea id="descricao" rows="3" required></textarea>
-        </div>
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label for="anexo">Anexos:</label>
-          <input type="file" id="anexo">
-        </div>
+        <!-- fecha .grid-flex -->
+        <button type="submit">Adicionar Solicitação</button>
+        <button type="button">Exportar</button>
+        <button type="button">Imprimir</button>
+      </form>
+
+      <hr />
+
+      <h2>Solicitações Existentes</h2>
+      <div class="filters">
+        <label for="statusFilter">Filtrar por Status:</label>
+        <select id="statusFilter">
+          <option value="Todos">Todos</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Em Andamento">Em Andamento</option>
+          <option value="Concluído">Concluído</option>
+        </select>
       </div>
-      <button type="submit">Adicionar Solicitação</button>
-      <button type="button">Exportar</button>
-      <button type="button">Imprimir</button>
-    </form>
 
-    <hr>
-
-    <h2>Solicitações Existentes</h2>
-    <div class="filters">
-      <label for="statusFilter">Filtrar por Status:</label>
-      <select id="statusFilter">
-        <option value="Todos">Todos</option>
-        <option value="Pendente">Pendente</option>
-        <option value="Em Andamento">Em Andamento</option>
-        <option value="Concluído">Concluído</option>
-      </select>
+      <div class="table-container">
+        <table id="requestsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Cliente</th>
+              <th>Assunto</th>
+              <th>Categoria</th>
+              <th>Prioridade</th>
+              <th>Status</th>
+              <th>Responsável</th>
+              <th>Última Atualização</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dados dinâmicos aqui -->
+          </tbody>
+        </table>
+      </div>
     </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        initSolicitacoes();
+      });
 
-    <div class="table-container">
-      <table id="requestsTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Data</th>
-            <th>Cliente</th>
-            <th>Assunto</th>
-            <th>Categoria</th>
-            <th>Prioridade</th>
-            <th>Status</th>
-            <th>Responsável</th>
-            <th>Última Atualização</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Dados dinâmicos aqui -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-</body>
+      function initSolicitacoes() {
+        loadSolicitacoes();
+        document
+          .getElementById("newRequestForm")
+          .addEventListener("submit", handleNovaSolicitacao);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", loadSolicitacoes);
+      }
+
+      function loadSolicitacoes() {
+        google.script.run
+          .withSuccessHandler(displaySolicitacoes)
+          .withFailureHandler(showError)
+          .getRequests();
+      }
+
+      function displaySolicitacoes(data) {
+        const tbody = document.querySelector("#requestsTable tbody");
+        tbody.innerHTML = "";
+        const filtro = document.getElementById("statusFilter").value;
+        const filtradas =
+          filtro === "Todos" ? data : data.filter((r) => r.Status === filtro);
+
+        filtradas.forEach((row) => {
+          const tr = tbody.insertRow();
+          const campos = [
+            "ID",
+            "Data",
+            "Cliente",
+            "Assunto",
+            "Status",
+            "Responsável",
+            "Última Atualização",
+          ];
+          campos.forEach((c) => (tr.insertCell().textContent = row[c] || ""));
+
+          const acoes = tr.insertCell();
+          const select = document.createElement("select");
+          ["Pendente", "Em Andamento", "Concluído"].forEach((status) => {
+            const opt = document.createElement("option");
+            opt.value = status;
+            opt.textContent = status;
+            if (row.Status === status) opt.selected = true;
+            select.appendChild(opt);
+          });
+          select.onchange = function () {
+            const novoStatus = this.value;
+            const resp = prompt("Nome do responsável:");
+            if (resp) {
+              google.script.run
+                .withSuccessHandler(loadSolicitacoes)
+                .withFailureHandler(showError)
+                .updateRequestStatus(parseInt(row.ID), novoStatus, resp);
+            } else {
+              this.value = row.Status;
+            }
+          };
+          acoes.appendChild(select);
+        });
+      }
+
+      function handleNovaSolicitacao(e) {
+        e.preventDefault();
+        const btn = e.submitter;
+        btn.disabled = true;
+
+        const dados = {
+          Cliente: document.getElementById("cliente")?.value || "",
+          Assunto: document.getElementById("assunto")?.value || "",
+          Descricao: document.getElementById("descricao")?.value || "",
+          Responsavel: document.getElementById("responsavel")?.value || "",
+          Status: "Pendente",
+        };
+
+        if (!dados.Cliente || dados.Cliente.trim().length < 2) {
+          alert("Nome do cliente é obrigatório.");
+          btn.disabled = false;
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(() => {
+            document.getElementById("newRequestForm").reset();
+            loadSolicitacoes();
+            btn.disabled = false;
+          })
+          .withFailureHandler((err) => {
+            showError(err);
+            btn.disabled = false;
+          })
+          .addRequest(dados);
+      }
+
+      function showError(error) {
+        alert("Erro: " + error.message);
+      }
+    </script>
+  </body>
 </html>
