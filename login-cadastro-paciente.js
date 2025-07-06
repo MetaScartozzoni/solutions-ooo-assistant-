@@ -1,6 +1,6 @@
 // Configuração do Supabase
 const SUPABASE_URL = 'https://evymdirordklgqtfucdp.supabase.co';
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_KEY'; // Substitua pela sua chave anônima
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eW1kaXJvcmRrbGdxdGZ1Y2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1ODg2MDEsImV4cCI6MjA2MzE2NDYwMX0.EVecSBaZFOoRmEMgbPEHPIwYwuLKlVWX5bjOQ7JGpmg'; // Substitua pela sua chave anônima
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Elementos do DOM
