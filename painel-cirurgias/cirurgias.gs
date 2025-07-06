@@ -1,10 +1,22 @@
 // Backend para Painel de Gestão de Cirurgias
-const SHEET_ID = "1q4hNK1zGsA9EvrAt7nYtMrIl51Ot5NHSlYQBUHollz8";
+//
+// Para definir o SHEET_ID via PropertiesService, execute o seguinte no editor do Apps Script:
+//
+//   PropertiesService.getScriptProperties().setProperty('SHEET_ID', 'SEU_ID_AQUI');
+//
+// Substitua 'SEU_ID_AQUI' pelo ID real da sua planilha.
+
+function getSheetId() {
+  const id = PropertiesService.getScriptProperties().getProperty("SHEET_ID");
+  if (!id) throw new Error("SHEET_ID não definido nas propriedades do script.");
+  return id;
+}
+
 const SHEET_NAME_CIRURGIAS = "Cirurgias";
 
 function getCirurgias() {
   const sheet =
-    SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME_CIRURGIAS);
+    SpreadsheetApp.openById(getSheetId()).getSheetByName(SHEET_NAME_CIRURGIAS);
   if (!sheet) throw new Error('A aba "Cirurgias" não foi encontrada.');
 
   const data = sheet.getDataRange().getValues();
@@ -18,7 +30,7 @@ function getCirurgias() {
 
 function addCirurgia(data) {
   const sheet =
-    SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME_CIRURGIAS);
+    SpreadsheetApp.openById(getSheetId()).getSheetByName(SHEET_NAME_CIRURGIAS);
   const headers = sheet
     .getRange(1, 1, 1, sheet.getLastColumn())
     .getValues()[0]
@@ -31,7 +43,7 @@ function addCirurgia(data) {
 
 function updateCirurgia(id, updatedData) {
   const sheet =
-    SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME_CIRURGIAS);
+    SpreadsheetApp.openById(getSheetId()).getSheetByName(SHEET_NAME_CIRURGIAS);
   const data = sheet.getDataRange().getValues();
   const headers = data[0].map((h) => h.toString().trim());
   const idIndex = headers.indexOf("ID_Paciente");
@@ -51,7 +63,7 @@ function updateCirurgia(id, updatedData) {
 
 function deleteCirurgia(id) {
   const sheet =
-    SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME_CIRURGIAS);
+    SpreadsheetApp.openById(getSheetId()).getSheetByName(SHEET_NAME_CIRURGIAS);
   const data = sheet.getDataRange().getValues();
   const idIndex = data[0].indexOf("ID_Paciente");
 

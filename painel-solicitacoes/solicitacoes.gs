@@ -1,11 +1,22 @@
 // solicitacoes.gs (Revisado e Seguro)
 
-const SHEET_ID = "1q4hNK1zGsA9EvrAt7nYtMrIl51Ot5NHSlYQBUHollz8";
+// Para definir o SHEET_ID via PropertiesService, execute o seguinte no editor do Apps Script:
+//
+//   PropertiesService.getScriptProperties().setProperty('SHEET_ID', 'SEU_ID_AQUI');
+//
+// Substitua 'SEU_ID_AQUI' pelo ID real da sua planilha.
+
+function getSheetId() {
+  const id = PropertiesService.getScriptProperties().getProperty("SHEET_ID");
+  if (!id) throw new Error("SHEET_ID não definido nas propriedades do script.");
+  return id;
+}
+
 const SHEET_NAME_ATENDIMENTO = "Solicitacoes";
 
 function getRequests() {
   try {
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(
+    const sheet = SpreadsheetApp.openById(getSheetId()).getSheetByName(
       SHEET_NAME_ATENDIMENTO
     );
     const data = sheet.getDataRange().getValues();
@@ -23,7 +34,7 @@ function getRequests() {
 
 function addRequest(data) {
   try {
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(
+    const sheet = SpreadsheetApp.openById(getSheetId()).getSheetByName(
       SHEET_NAME_ATENDIMENTO
     );
     const headers = sheet
@@ -61,7 +72,7 @@ function addRequest(data) {
 
 function updateRequestStatus(id, novoStatus, responsavel) {
   try {
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(
+    const sheet = SpreadsheetApp.openById(getSheetId()).getSheetByName(
       SHEET_NAME_ATENDIMENTO
     );
     const data = sheet.getDataRange().getValues();

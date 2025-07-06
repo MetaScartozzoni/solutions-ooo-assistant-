@@ -197,5 +197,105 @@
         </table>
       </div>
     </div>
+    <script>
+      // Carregar agendamentos ao iniciar
+      function carregarAgendamentos() {
+        const status = document.getElementById("statusFilter").value;
+        google.script.run
+          .withSuccessHandler(renderizarAgendamentos)
+          .listarAgendamentos(status);
+      }
+
+      // Renderizar tabela de agendamentos
+      function renderizarAgendamentos(lista) {
+        const tbody = document
+          .getElementById("appointmentsTable")
+          .querySelector("tbody");
+        tbody.innerHTML = "";
+        lista.forEach((ag) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${ag.ID || ""}</td>
+            <td>${ag.Data || ""}</td>
+            <td>${ag.Hora || ""}</td>
+            <td>${ag.Cliente || ""}</td>
+            <td>${ag["Email Cliente"] || ""}</td>
+            <td>${ag.WhatsApp || ""}</td>
+            <td>${ag.Serviço || ""}</td>
+            <td>${ag.Status || ""}</td>
+            <td><button type="button">Iniciar Consulta</button></td>
+            <td><button type="button">Gerar Orçamento</button></td>
+            <td><button type="button" onclick="editarAgendamento('${ag.ID}')">Editar</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Submeter formulário para criar ou atualizar agendamento
+      document.getElementById("appointmentForm").onsubmit = function (e) {
+        e.preventDefault();
+        const dados = {
+          ID: document.getElementById("appointmentId").value,
+          Data: document.getElementById("dataAgendamento").value,
+          Hora: document.getElementById("horaAgendamento").value,
+          Cliente: document.getElementById("clienteAgendamento").value,
+          WhatsApp: document.getElementById("whatsappAgendamento").value,
+          "Email Cliente": document.getElementById("emailClienteAgendamento")
+            .value,
+          Serviço: document.getElementById("servicoAgendamento").value,
+          Status: document.getElementById("statusAgendamento").value,
+          Observações:
+            document.getElementById("observacoesAgendamento")?.value || "",
+        };
+        if (dados.ID) {
+          google.script.run
+            .withSuccessHandler(() => {
+              alert("Agendamento atualizado com sucesso!");
+              carregarAgendamentos();
+              document.getElementById("appointmentForm").reset();
+            })
+            .atualizarAgendamento(dados.ID, dados);
+        } else {
+          google.script.run
+            .withSuccessHandler(() => {
+              alert("Agendamento criado com sucesso!");
+              carregarAgendamentos();
+              document.getElementById("appointmentForm").reset();
+            })
+            .criarAgendamento(dados);
+        }
+      };
+
+      // Editar agendamento (preencher formulário)
+      function editarAgendamento(id) {
+        google.script.run
+          .withSuccessHandler(function (lista) {
+            const ag = lista.find((a) => a.ID == id);
+            if (!ag) return;
+            document.getElementById("appointmentId").value = ag.ID || "";
+            document.getElementById("dataAgendamento").value = ag.Data || "";
+            document.getElementById("horaAgendamento").value = ag.Hora || "";
+            document.getElementById("clienteAgendamento").value =
+              ag.Cliente || "";
+            document.getElementById("whatsappAgendamento").value =
+              ag.WhatsApp || "";
+            document.getElementById("emailClienteAgendamento").value =
+              ag["Email Cliente"] || "";
+            document.getElementById("servicoAgendamento").value =
+              ag.Serviço || "";
+            document.getElementById("statusAgendamento").value =
+              ag.Status || "Pendente";
+            document.getElementById("observacoesAgendamento").value =
+              ag.Observações || "";
+          })
+          .listarAgendamentos("Todos");
+      }
+
+      // Filtrar agendamentos por status
+      document.getElementById("statusFilter").onchange = carregarAgendamentos;
+
+      // Inicialização
+      carregarAgendamentos();
+    </script>
   </body>
 </html>

@@ -57,6 +57,60 @@ Abra `http://localhost:3000` para visualizar.
 
 ---
 
+## 📥 Integração com Jotform (Webhooks)
+
+Você pode automatizar o recebimento de agendamentos ou solicitações de cirurgia usando formulários do Jotform e webhooks.
+
+### 1. Crie um formulário no Jotform
+
+- Acesse [Jotform](https://www.jotform.com/), crie um formulário para agendamento ou solicitação de cirurgia.
+- Adicione campos como Nome, Telefone, Data, Tipo de Cirurgia, etc.
+
+### 2. Configure o Webhook do Jotform
+
+- No editor do Jotform, vá em **Settings > Integrations > Webhooks**.
+- Adicione a URL do seu endpoint, por exemplo:
+  - Para Next.js: `https://seusite.com/api/jotform-webhook`
+  - Para Apps Script: `https://script.google.com/macros/s/SEU_DEPLOY_ID/exec`
+
+### 3. Exemplo de endpoint para receber o webhook
+
+#### Next.js (pages/api/jotform-webhook.js)
+
+```js
+export default async function handler(req, res) {
+  if (req.method === "POST") {
+    const data = req.body;
+    // TODO: Parse campos do Jotform conforme necessário
+    // Exemplo: Salvar no Google Sheets, banco de dados, etc.
+    res.status(200).json({ ok: true });
+  } else {
+    res.status(405).end();
+  }
+}
+```
+
+#### Google Apps Script (doPost)
+
+```js
+function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  // TODO: Parse campos do Jotform e salvar na planilha
+  // Exemplo:
+  // var sheet = SpreadsheetApp.openById('SHEET_ID').getSheetByName('Agendamento');
+  // sheet.appendRow([data.nome, data.telefone, data.data, ...]);
+  return ContentService.createTextOutput("OK");
+}
+```
+
+### 4. (Opcional) Notificações por Email/WhatsApp
+
+- Após salvar o registro, envie um e-mail ou mensagem WhatsApp usando:
+  - [Apps Script MailApp](https://developers.google.com/apps-script/reference/mail/mail-app)
+  - [Twilio API](https://www.twilio.com/docs/whatsapp/send-messages) para WhatsApp
+
+---
+
 ## 🤝 Contribuição
 
 Sinta-se livre para contribuir! Sugestões e melhorias são bem-vindas.
