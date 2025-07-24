@@ -1,177 +1,457 @@
 // Inicializar o cliente Supabase
 const SUPABASE_URL = "https://evymdirordklgqtfucdp.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eW1kaXJvcmRrbGdxdGZ1Y2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1ODg2MDEsImV4cCI6MjA2MzE2NDYwMX0.EVecSBaZFOoRmEMgbPEHPIwYwuLKlVWX5bjOQ7JGpmg"; // Substitua pela sua chave anônima
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2eW1kaXJvcmRrbGdxdGZ1Y2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1ODg2MDEsImV4cCI6MjA2MzE2NDYwMX0.EVecSBaZFOoRmEMgbPEHPIwYwuLKlVWX5bjOQ7JGpmg";
+
+// ✅ CORREÇÃO PRINCIPAL
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Elementos do DOM
-const patientForm = document.getElementById("patientForm");
-const patientsList = document.getElementById("patientsList");
-const patientDetails = document.getElementById("patientDetails");
+const authContainer = document.getElementById("authContainer");
+const appContainer = document.getElementById("appContainer");
+const loginForm = document.getElementById("loginForm");
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userInfo = document.getElementById("userInfo");
+const userName = document.getElementById("userName");
+const userAvatar = document.getElementById("userAvatar");
 
-// Carregar pacientes ao iniciar a página
-document.addEventListener("DOMContentLoaded", loadPatients);
-
-// Adicionar evento de envio do formulário
-patientForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  await addPatient();
+// Verificar se o usuário está logado ao carregar a página
+document.addEventListener("DOMContentLoaded", async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    showApp();
+    updateUserInfo(session.user);
+    initializeCalendar();
+  } else {
+    showAuth();
+  }
 });
+
+// Adicionar evento de login com email/senha
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    showApp();
+    updateUserInfo(data.user);
+    initializeCalendar();
+  } catch (error) {
+    console.error("Erro ao fazer login:", error);
+    alert("Erro ao fazer login: " + error.message);
+  }
+});
+
+// Adicionar evento de login com Google
+googleLoginBtn.addEventListener("click", async () => {
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Erro ao iniciar login com Google:", error);
+    alert("Erro ao iniciar login com Google: " + error.message);
+  }
+});
+
+// Adicionar evento de logout
+logoutBtn.addEventListener("click", async () => {
+  await supabaseClient.auth.signOut();
+  showAuth();
+});
+
+// Função para mostrar a tela de autenticação
+function showAuth() {
+  authContainer.style.display = "block";
+  appContainer.style.display = "none";
+  logoutBtn.style.display = "none";
+  userInfo.style.display = "none";
+}
+
+// Função para mostrar o aplicativo
+function showApp() {
+  authContainer.style.display = "none";
+  appContainer.style.display = "block";
+  logoutBtn.style.display = "block";
+  userInfo.style.display = "flex";
+}
+
+// Função para atualizar informações do usuário
+function updateUserInfo(user) {
+  if (user.user_metadata && user.user_metadata.full_name) {
+    userName.textContent = user.user_metadata.full_name;
+  } else if (user.user_metadata && user.user_metadata.name) {
+    userName.textContent = user.user_metadata.name;
+  } else {
+    userName.textContent = user.email;
+  }
+
+  if (user.user_metadata && user.user_metadata.avatar_url) {
+    userAvatar.src = user.user_metadata.avatar_url;
+    userAvatar.style.display = "block";
+  } else {
+    userAvatar.style.display = "none";
+  }
+}
+
+// Variáveis do calendário
+let calendar;
+let currentProfessional = '';
+
+// Função para inicializar o calendário
+function initializeCalendar() {
+  const calendarEl = document.getElementById('calendar');
+  
+  calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'pt-br',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    buttonText: {
+      today: 'Hoje',
+      month: 'Mês',
+      week: 'Semana',
+      day: 'Dia'
+    },
+    height: 'auto',
+    events: loadAppointments,
+    eventClick: function(info) {
+      showAppointmentDetails(info.event);
+    },
+    dateClick: function(info) {
+      openNewAppointmentModal(info.date);
+    }
+  });
+
+  calendar.render();
+  loadProfessionals();
+  loadPatients();
+  setupEventListeners();
+}
+
+// Função para carregar agendamentos
+async function loadAppointments() {
+  try {
+    let query = supabaseClient
+      .from('appointments')
+      .select(`
+        *,
+        patients(first_name, last_name),
+        professionals(name)
+      `);
+
+    if (currentProfessional) {
+      query = query.eq('professional_id', currentProfessional);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return data.map(appointment => ({
+      id: appointment.id,
+      title: `${appointment.patients.first_name} ${appointment.patients.last_name}`,
+      start: `${appointment.date}T${appointment.start_time}`,
+      end: `${appointment.date}T${appointment.end_time}`,
+      backgroundColor: getStatusColor(appointment.status),
+      extendedProps: {
+        patient: appointment.patients,
+        professional: appointment.professionals,
+        status: appointment.status,
+        notes: appointment.notes
+      }
+    }));
+  } catch (error) {
+    console.error('Erro ao carregar agendamentos:', error);
+    return [];
+  }
+}
+
+// Função para carregar profissionais
+async function loadProfessionals() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('professionals')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+
+    const professionalSelect = document.getElementById('professionalSelect');
+    const appointmentProfessional = document.getElementById('appointmentProfessional');
+    
+    // Limpar opções existentes
+    professionalSelect.innerHTML = '<option value="">Todos os profissionais</option>';
+    appointmentProfessional.innerHTML = '<option value="">Selecione um profissional</option>';
+
+    data.forEach(professional => {
+      const option1 = document.createElement('option');
+      option1.value = professional.id;
+      option1.textContent = professional.name;
+      professionalSelect.appendChild(option1);
+
+      const option2 = document.createElement('option');
+      option2.value = professional.id;
+      option2.textContent = professional.name;
+      appointmentProfessional.appendChild(option2);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar profissionais:', error);
+  }
+}
 
 // Função para carregar pacientes
 async function loadPatients() {
   try {
-    const { data, error } = await supabase
-      .from("patients_with_custom_id")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabaseClient
+      .from('patients')
+      .select('*')
+      .order('first_name');
 
     if (error) throw error;
 
-    // Limpar lista atual
-    patientsList.innerHTML = "";
+    const appointmentPatient = document.getElementById('appointmentPatient');
+    appointmentPatient.innerHTML = '<option value="">Selecione um paciente</option>';
 
-    // Adicionar pacientes à tabela
-    data.forEach((patient) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-                <td>${patient.id}</td>
-                <td>${patient.first_name}</td>
-                <td>${patient.last_name}</td>
-                <td>${patient.email || "-"}</td>
-                <td>${patient.phone || "-"}</td>
-                <td>${formatDate(patient.date_of_birth)}</td>
-                <td>
-                    <button class="btn btn-sm btn-info view-patient" data-id="${patient.id}">Ver</button>
-                    <button class="btn btn-sm btn-danger delete-patient" data-id="${patient.id}">Excluir</button>
-                </td>
-            `;
-      patientsList.appendChild(row);
+    data.forEach(patient => {
+      const option = document.createElement('option');
+      option.value = patient.id;
+      option.textContent = `${patient.first_name} ${patient.last_name}`;
+      appointmentPatient.appendChild(option);
     });
-
-    // Adicionar eventos aos botões
-    addButtonEvents();
   } catch (error) {
-    console.error("Erro ao carregar pacientes:", error);
-    alert(
-      "Erro ao carregar pacientes. Verifique o console para mais detalhes."
-    );
+    console.error('Erro ao carregar pacientes:', error);
   }
 }
 
-// Função para adicionar paciente usando RPC
-async function addPatient() {
-  try {
-    const firstName = document.getElementById("firstName").value;
-    const lastName = document.getElementById("lastName").value;
-    const email = document.getElementById("email").value;
-    const phone = document.getElementById("phone").value;
-    const dateOfBirth = document.getElementById("dateOfBirth").value;
+// Função para configurar event listeners
+function setupEventListeners() {
+  // Filtro de profissional
+  document.getElementById('professionalSelect').addEventListener('change', (e) => {
+    currentProfessional = e.target.value;
+    calendar.refetchEvents();
+  });
 
-    // Chamar a função RPC para criar paciente com ID personalizado
-    const { data, error } = await supabase.rpc(
-      "create_patient_with_custom_id",
-      {
-        p_first_name: firstName,
-        p_last_name: lastName,
-        p_email: email || null,
-        p_phone: phone || null,
-        p_date_of_birth: dateOfBirth || null,
-      }
-    );
+  // Filtro de visualização
+  document.getElementById('viewSelect').addEventListener('change', (e) => {
+    calendar.changeView(e.target.value);
+  });
 
-    if (error) throw error;
+  // Botão aplicar filtros
+  document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+    calendar.refetchEvents();
+  });
 
-    alert(`Paciente cadastrado com sucesso! ID: ${data.id}`);
-    patientForm.reset();
-    loadPatients();
-  } catch (error) {
-    console.error("Erro ao adicionar paciente:", error);
-    alert(
-      "Erro ao adicionar paciente. Verifique o console para mais detalhes."
-    );
+  // Botão novo agendamento
+  document.getElementById('newAppointmentBtn').addEventListener('click', () => {
+    openNewAppointmentModal();
+  });
+
+  // Botão salvar agendamento
+  document.getElementById('saveAppointmentBtn').addEventListener('click', saveAppointment);
+
+  // Botão excluir agendamento
+  document.getElementById('deleteAppointmentBtn').addEventListener('click', deleteAppointment);
+}
+
+// Função para obter cor do status
+function getStatusColor(status) {
+  const colors = {
+    'scheduled': '#4caf50',
+    'completed': '#2196f3',
+    'cancelled': '#f44336',
+    'no_show': '#ff9800'
+  };
+  return colors[status] || '#4caf50';
+}
+
+// Função para abrir modal de novo agendamento
+function openNewAppointmentModal(date = null) {
+  document.getElementById('appointmentModalTitle').textContent = 'Novo Agendamento';
+  document.getElementById('appointmentForm').reset();
+  document.getElementById('appointmentId').value = '';
+  document.getElementById('appointmentStatusGroup').style.display = 'none';
+  document.getElementById('deleteAppointmentBtn').style.display = 'none';
+
+  if (date) {
+    document.getElementById('appointmentDate').value = date.toISOString().split('T')[0];
+  }
+
+  generateTimeOptions();
+  
+  const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+  modal.show();
+}
+
+// Função para gerar opções de horário
+function generateTimeOptions() {
+  const startTimeSelect = document.getElementById('appointmentStartTime');
+  const endTimeSelect = document.getElementById('appointmentEndTime');
+  
+  startTimeSelect.innerHTML = '<option value="">Selecione</option>';
+  endTimeSelect.innerHTML = '<option value="">Selecione</option>';
+
+  for (let hour = 8; hour <= 18; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      
+      const option1 = document.createElement('option');
+      option1.value = timeString;
+      option1.textContent = timeString;
+      startTimeSelect.appendChild(option1);
+
+      const option2 = document.createElement('option');
+      option2.value = timeString;
+      option2.textContent = timeString;
+      endTimeSelect.appendChild(option2);
+    }
   }
 }
 
-// Função para visualizar detalhes do paciente
-async function viewPatient(id) {
+// Função para salvar agendamento
+async function saveAppointment() {
   try {
-    // Usar a função RPC que criamos anteriormente
-    const { data, error } = await supabase.rpc("get_patient_safely", {
-      p_id: id,
-    });
+    const appointmentData = {
+      patient_id: document.getElementById('appointmentPatient').value,
+      professional_id: document.getElementById('appointmentProfessional').value,
+      date: document.getElementById('appointmentDate').value,
+      start_time: document.getElementById('appointmentStartTime').value,
+      end_time: document.getElementById('appointmentEndTime').value,
+      notes: document.getElementById('appointmentNotes').value,
+      status: document.getElementById('appointmentStatus').value || 'scheduled'
+    };
 
-    if (error) throw error;
+    const appointmentId = document.getElementById('appointmentId').value;
 
-    if (!data.found) {
-      alert("Paciente não encontrado!");
-      return;
+    let result;
+    if (appointmentId) {
+      // Atualizar agendamento existente
+      result = await supabaseClient
+        .from('appointments')
+        .update(appointmentData)
+        .eq('id', appointmentId);
+    } else {
+      // Criar novo agendamento
+      result = await supabaseClient
+        .from('appointments')
+        .insert([appointmentData]);
     }
 
-    const patient = data.patient;
+    if (result.error) throw result.error;
 
-    // Preencher modal com detalhes do paciente
-    patientDetails.innerHTML = `
-            <p><strong>ID:</strong> ${patient.id}</p>
-            <p><strong>Nome:</strong> ${patient.first_name} ${patient.last_name}</p>
-            <p><strong>Email:</strong> ${patient.email || "Não informado"}</p>
-            <p><strong>Telefone:</strong> ${patient.phone || "Não informado"}</p>
-            <p><strong>Data de Nascimento:</strong> ${formatDate(patient.date_of_birth)}</p>
-            <p><strong>Cadastrado em:</strong> ${formatDateTime(patient.created_at)}</p>
-            <p><strong>Última atualização:</strong> ${formatDateTime(patient.updated_at)}</p>
-        `;
-
-    // Abrir modal
-    const patientModal = new bootstrap.Modal(
-      document.getElementById("patientModal")
-    );
-    patientModal.show();
+    alert('Agendamento salvo com sucesso!');
+    calendar.refetchEvents();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+    modal.hide();
   } catch (error) {
-    console.error("Erro ao carregar detalhes do paciente:", error);
-    alert(
-      "Erro ao carregar detalhes do paciente. Verifique o console para mais detalhes."
-    );
+    console.error('Erro ao salvar agendamento:', error);
+    alert('Erro ao salvar agendamento: ' + error.message);
   }
 }
 
-// Função para excluir paciente
-async function deletePatient(id) {
-  if (!confirm(`Tem certeza que deseja excluir o paciente com ID ${id}?`)) {
-    return;
-  }
+// Função para excluir agendamento
+async function deleteAppointment() {
+  const appointmentId = document.getElementById('appointmentId').value;
+  
+  if (!appointmentId) return;
+
+  if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
 
   try {
-    const { error } = await supabase
-      .from("patients_with_custom_id")
+    const { error } = await supabaseClient
+      .from('appointments')
       .delete()
-      .eq("id", id);
+      .eq('id', appointmentId);
 
     if (error) throw error;
 
-    alert("Paciente excluído com sucesso!");
-    loadPatients();
+    alert('Agendamento excluído com sucesso!');
+    calendar.refetchEvents();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+    modal.hide();
   } catch (error) {
-    console.error("Erro ao excluir paciente:", error);
-    alert("Erro ao excluir paciente. Verifique o console para mais detalhes.");
+    console.error('Erro ao excluir agendamento:', error);
+    alert('Erro ao excluir agendamento: ' + error.message);
   }
 }
 
-// Adicionar eventos aos botões de visualizar e excluir
-function addButtonEvents() {
-  // Botões de visualizar
-  document.querySelectorAll(".view-patient").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = button.getAttribute("data-id");
-      viewPatient(id);
-    });
-  });
+// Função para mostrar detalhes do agendamento
+function showAppointmentDetails(event) {
+  const details = `
+    <p><strong>Paciente:</strong> ${event.title}</p>
+    <p><strong>Profissional:</strong> ${event.extendedProps.professional.name}</p>
+    <p><strong>Data:</strong> ${event.start.toLocaleDateString('pt-BR')}</p>
+    <p><strong>Horário:</strong> ${event.start.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})} - ${event.end.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</p>
+    <p><strong>Status:</strong> ${getStatusText(event.extendedProps.status)}</p>
+    <p><strong>Observações:</strong> ${event.extendedProps.notes || 'Nenhuma'}</p>
+  `;
+  
+  document.getElementById('appointmentDetails').innerHTML = details;
+  
+  // Configurar botão de editar
+  document.getElementById('editAppointmentBtn').onclick = () => {
+    editAppointment(event);
+  };
+  
+  const modal = new bootstrap.Modal(document.getElementById('viewAppointmentModal'));
+  modal.show();
+}
 
-  // Botões de excluir
-  document.querySelectorAll(".delete-patient").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = button.getAttribute("data-id");
-      deletePatient(id);
-    });
-  });
+// Função para editar agendamento
+function editAppointment(event) {
+  // Fechar modal de visualização
+  const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewAppointmentModal'));
+  viewModal.hide();
+  
+  // Preencher formulário de edição
+  document.getElementById('appointmentModalTitle').textContent = 'Editar Agendamento';
+  document.getElementById('appointmentId').value = event.id;
+  document.getElementById('appointmentPatient').value = event.extendedProps.patient.id;
+  document.getElementById('appointmentProfessional').value = event.extendedProps.professional.id;
+  document.getElementById('appointmentDate').value = event.start.toISOString().split('T')[0];
+  document.getElementById('appointmentStartTime').value = event.start.toTimeString().slice(0, 5);
+  document.getElementById('appointmentEndTime').value = event.end.toTimeString().slice(0, 5);
+  document.getElementById('appointmentNotes').value = event.extendedProps.notes || '';
+  document.getElementById('appointmentStatus').value = event.extendedProps.status;
+  
+  document.getElementById('appointmentStatusGroup').style.display = 'block';
+  document.getElementById('deleteAppointmentBtn').style.display = 'inline-block';
+  
+  generateTimeOptions();
+  
+  const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+  modal.show();
+}
+
+// Função para obter texto do status
+function getStatusText(status) {
+  const statusTexts = {
+    'scheduled': 'Agendado',
+    'completed': 'Concluído',
+    'cancelled': 'Cancelado',
+    'no_show': 'Não compareceu'
+  };
+  return statusTexts[status] || status;
 }
 
 // Funções auxiliares para formatação de data
@@ -187,64 +467,14 @@ function formatDateTime(dateTimeString) {
   return date.toLocaleString("pt-BR");
 }
 
-// Elementos de autenticação
-const authContainer = document.getElementById("authContainer");
-const appContainer = document.getElementById("appContainer");
-const loginForm = document.getElementById("loginForm");
-
-// Verificar se o usuário está logado ao carregar a página
-document.addEventListener("DOMContentLoaded", async () => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+// Adicionar evento de redirecionamento após login com Google
+window.addEventListener('load', async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     showApp();
-    loadPatients();
-  } else {
-    showAuth();
+    updateUserInfo(session.user);
+    initializeCalendar();
   }
 });
-
-// Adicionar evento de login
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    showApp();
-    loadPatients();
-  } catch (error) {
-    console.error("Erro ao fazer login:", error);
-    alert("Erro ao fazer login: " + error.message);
-  }
-});
-
-// Função para mostrar a tela de autenticação
-function showAuth() {
-  authContainer.style.display = "block";
-  appContainer.style.display = "none";
-}
-
-// Função para mostrar o aplicativo
-function showApp() {
-  authContainer.style.display = "none";
-  appContainer.style.display = "block";
-}
-
-// Adicionar função de logout
-function logout() {
-  supabase.auth.signOut().then(() => {
-    showAuth();
-  });
-}
 
 
